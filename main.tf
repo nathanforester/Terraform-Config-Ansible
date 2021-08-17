@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "eu-west-1"
+  region = "eu-west-2"
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
@@ -23,7 +23,7 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_subnet" "subpublic" {
   vpc_id     = aws_vpc.mainvpc.id
   cidr_block = "167.0.1.0/24"
-  availability_zone = "eu-west-1b"
+  availability_zone = "eu-west-2a"
   map_public_ip_on_launch = true
 
   tags = {
@@ -49,6 +49,14 @@ resource "aws_security_group" "sgapp" {
    description = "httpx from VPC"
    from_port = 80
    to_port = 80
+   protocol = "tcp"
+   cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+   description = "httpx from VPC"
+   from_port = 8080
+   to_port = 8080
    protocol = "tcp"
    cidr_blocks = ["0.0.0.0/0"]
   }
@@ -93,14 +101,6 @@ resource "aws_route_table_association" "routeapp" {
 }
 
 # pre-assign private IP addresses  
-resource "aws_network_interface" "network" {
-  subnet_id   = aws_subnet.subpublic.id
-  private_ips = ["10.0.1.1", "10.0.1.2"]
-  
-  tags = {
-    Name = "primary_network_interface"
-  }
-}
 
 # creating two EC2s to communicate with each other via SSH
 resource "aws_instance" "nginx" {
@@ -108,17 +108,29 @@ resource "aws_instance" "nginx" {
 	instance_type = "t2.micro"
 	key_name = var.ssh_key
     subnet_id = aws_subnet.subpublic.id
+    private_ip = "167.0.1.10"
     vpc_security_group_ids = [aws_security_group.sgapp.id]
     associate_public_ip_address = true
-
-    network_interface {
-    network_interface_id = aws_network_interface.network.id
-    device_index         = 0
-	}
 
 	tags = {	
 		Name = "nginx"	
 	}
+}
+
+resource "null_resource" "connect_nginx" {
+  provisioner "remote-exec" {
+    inline = [
+      "sudo echo 'ubuntu ALL=(ALL:ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo"
+    ]
+    connection {
+      host        = aws_instance.nginx.public_ip
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("./<insert .pem key name here>")
+    }
+    
+  }
+  depends_on = [aws_instance.nginx]
 }
 
 resource "aws_instance" "ansible" {
@@ -128,15 +140,30 @@ resource "aws_instance" "ansible" {
 	subnet_id = aws_subnet.subpublic.id
     vpc_security_group_ids = [aws_security_group.sgapp.id]
     associate_public_ip_address = true
-	user_data = "${file("ansible-script.sh")}"
+    user_data = "${file("./ansible-script.sh")}"
 
-    network_interface {
-    network_interface_id = aws_network_interface.network.id
-    device_index         = 1
-	}
+    
 
+  depends_on = [aws_instance.nginx]
 
-	tags = {	
+  tags = {	
 		Name = "ansible"	
 	}
 }
+
+resource "null_resource" "connect_ansible" {
+  provisioner "remote-exec" {
+    inline = [
+      "sudo su -l ubuntu -c 'sudo ansible-playbook -i /home/ubuntu/inventory.yaml /home/ubuntu/playbook.yaml'"
+    ]
+    connection {
+      host        = aws_instance.ansible.public_ip
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("./<insert .pem key name here>")
+    }
+    
+  }
+  depends_on = [aws_instance.ansible]
+}
+

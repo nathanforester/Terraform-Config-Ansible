@@ -4,49 +4,63 @@ sudo apt update
 
 sudo apt install ansible -y
 
-sudo touch playbook.yaml && cat <<ENDL > playbook.yaml
-- hosts: localhost
-  become: yes
-  ignore_errors: true
-  tasks:
-    
-    - name: create SSH key folder and file
-      command: sudo mkdir ~/.ssh && touch Estio-Training-NForester
+sudo touch /home/ubuntu/playbook.yaml 
 
-    - name: copy SSH key to file
-      command: cat <<ENDL > <insert key data here>
-                            ENDL
-    
-    - name: change SSH key permission
-      ansible.builtin.file:
-        path: ~/.ssh/Estio-Training-NForester
-        mode: '0600'
----
+sudo touch /home/ubuntu/inventory.yaml
 
+sudo chmod 777 /home/ubuntu/playbook.yaml 
+
+sudo chmod 777 /home/ubuntu/inventory.yaml
+
+cat <<ENDL > /home/ubuntu/playbook.yaml
 - hosts: nginx  
   become: yes
-  ignore_errors: true
-  vars:
   tasks:
 
     - name: Update apt cache
       apt: update_cache=yes 
-     
+          
     - name: install nginx
-      apt: nginx
-      state: reloaded
+      apt: 
+        name: nginx
+        state: latest
+
 ENDL
 
-sudo touch inventory.yaml && cat <<ENDL > inventory.yaml
+cat <<ENDL > /home/ubuntu/inventory.yaml
 all:
   children:
     nginx:
       hosts:
-        10.0.1.1:
+        167.0.1.10:
   vars:
-    ansible_user: nforester86
-    ansible_ssh_private_key_file: "~/.ssh/Estio-Training-NForester"
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: "/home/ubuntu/.ssh/<insert key name here>"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 ENDL
 
-ansible-playbook -v -i inventory.yaml playbook.yaml
+sudo chmod 640 /home/ubuntu/playbook.yaml
+
+sudo chmod 640 /home/ubuntu/inventory.yaml
+
+sudo chown ubuntu /home/ubuntu/inventory.yaml
+
+sudo chown ubuntu /home/ubuntu/inventory.yaml
+
+sudo touch /home/ubuntu/.ssh/<insert key name here>
+
+sudo chmod 777 /home/ubuntu/.ssh/<insert key name here>
+
+sudo cat <<EOT > /home/ubuntu/.ssh/<insert key name here>
+<insert key data here>
+EOT
+
+sudo chown ubuntu /home/ubuntu/.ssh/<insert key name here>
+
+sudo chmod 600 /home/ubuntu/.ssh/<insert key name here>
+
+sudo echo 'ubuntu ALL=(ALL:ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo
+
+
+#ansible-playbook -v -i inventory.yaml playbook.yaml
+

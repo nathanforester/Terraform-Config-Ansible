@@ -19,7 +19,7 @@ variable "name" {
 
 variable  "ami_app" {
  type = string
- default = "ami-00b48f09c568b0014"
+ default = "ami-0194c3e07668a7e36"
 }
 
 variable  "ssh_key" {

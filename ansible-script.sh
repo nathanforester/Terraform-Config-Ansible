@@ -62,5 +62,3 @@ sudo chmod 600 /home/ubuntu/.ssh/<insert key name here>
 sudo echo 'ubuntu ALL=(ALL:ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo
 
 
-#ansible-playbook -v -i inventory.yaml playbook.yaml
-

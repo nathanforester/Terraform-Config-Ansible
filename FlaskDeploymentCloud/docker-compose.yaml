@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  service1:
+    image: /service1:latest
+    build: service-1/
+    ports:
+        - target: 5000
+          published: 5000
+    deploy:
+      replicas: 2

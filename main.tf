@@ -126,7 +126,7 @@ resource "null_resource" "connect_nginx" {
       host        = aws_instance.nginx.public_ip
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("./<insert .pem key name here>")
+      private_key = file("./Estio-Training-NForester")
     }
     
   }
@@ -160,7 +160,7 @@ resource "null_resource" "connect_ansible" {
       host        = aws_instance.ansible.public_ip
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("./<insert .pem key name here>")
+      private_key = file("./Estio-Training-NForester")
     }
     
   }

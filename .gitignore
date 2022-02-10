@@ -1,1 +1,6 @@
 secret.tfvars
+.terraform.lock.hcl
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+Estio-Training-NForester

@@ -12,3 +12,5 @@ Once the subsequent project is complete (APIFlaskDocker), along with its tests, 
 Update 10/02/2022 
 
 This project will now be combined with others to build an application on a Jenkins server
+
+fixed git branch structure
